@@ -4,6 +4,13 @@
 #include "psu_control.h"
 
 #include "Wire.h"
+
+#define WIRE1_SDA       2  // Use GP2 as I2C1 SDA
+#define WIRE1_SCL       3  // Use GP3 as I2C1 SCL
+
+#ifndef esp32dev  
+  arduino::MbedI2C Wire1(WIRE1_SDA, WIRE1_SCL);
+#endif
 //extern TwoWire Wire1;
 
 void read_all_psu_registers();
@@ -18,8 +25,9 @@ uint16_t test_data = 0x0000;
 uint8_t psu_mcu_addr = 0xFF;
 uint8_t psu_mem_addr = 0xFF;
 
-extern uint8_t SCL_2;
-extern uint8_t SDA_2;
+
+//extern arduino::MbedI2C Wire1(WIRE1_SDA, WIRE1_SCL);
+
 
 #ifdef pico
     uint8_t SCL_2 = 11;
@@ -32,6 +40,8 @@ extern uint8_t SDA_2;
     uint8_t SDA_2 = 33;
     uint8_t LED_BUILTIN = 2;
 #endif
+
+#define LED_BUILTIN 25
 
 void setup_ignore_registers(){
 
@@ -788,6 +798,9 @@ void write_psu_mcu_f16(uint8_t reg, double val, double scale){
   write_psu_mcu_u16(reg, v);
 }
 
+void setupWire1(){
+  Wire1.begin();
+}
 
 
 

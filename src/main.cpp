@@ -2,22 +2,29 @@
 
 #include "Wire.h"
 
+
+#define Module1 0x12
+#define Module2 0x13
+#define Module3 0x14
 //TwoWire Wire1 = TwoWire(1);
 
 
 const char I2C_ADDR = 0x55; //Set to desired i2c-adress
 #undef DEBUG    //Define for various debug outputs (#undef to disable) - !!!ENABLING SLOWS DOWN CODE SIGNIFICANTLY!!!
 
-#define Module1 0x12
-#define Module2 0x13
-#define Module3 0x14
+
 
 extern uint8_t SCL_2;
 extern uint8_t SDA_2;
 
-#include "psu_control.h"
 
 //TwoWire Wire1 = TwoWire(1);
+//#ifndef esp32dev
+
+//#endif
+
+
+#include "psu_control.h"
 
 void sendData(float data1, float data2);  //Function to send data back to the master
 void sendData(int data1, int data2);  //Overload to accept int as argument
@@ -149,9 +156,7 @@ void setup() {
   Wire.onReceive(onReceive);  //Function to be called when a master sends data to the slave
   Wire.onRequest(onRequest);  //Function to be called when a master requests data from the slave
   Wire.begin((uint8_t)I2C_ADDR);  //Register this device as a slave on the i2c-bus (on bus 0)
-    
-    Wire1.begin(SDA_2, SCL_2);
-  
+  setupWire1();
   while (psu_mem_addr == 0xFF){
     Serial.println("Scanning for EEPROM.");
     scan_for_device(0x50, 0x57, psu_mem_addr);

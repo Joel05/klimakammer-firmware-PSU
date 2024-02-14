@@ -56,5 +56,6 @@ void write_psu_mcu_u8(uint8_t, uint8_t);
 void write_psu_mcu_u16(uint8_t, uint16_t);
 void force_psu_fan(uint16_t);
 void write_psu_mcu_f16(uint8_t, double, double);
+void setupWire1();
 
 #endif

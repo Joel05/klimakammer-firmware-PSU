@@ -1,5 +1,9 @@
 #include "Arduino.h"
+
 #include "Wire.h"
+
+//TwoWire Wire1 = TwoWire(1);
+
 
 const char I2C_ADDR = 0x55; //Set to desired i2c-adress
 #undef DEBUG    //Define for various debug outputs (#undef to disable) - !!!ENABLING SLOWS DOWN CODE SIGNIFICANTLY!!!
@@ -8,13 +12,12 @@ const char I2C_ADDR = 0x55; //Set to desired i2c-adress
 #define Module2 0x13
 #define Module3 0x14
 
+extern uint8_t SCL_2;
+extern uint8_t SDA_2;
 
-#define BUILTIN_LED 25 //GPIO of BUILTIN_LED for pico
-#ifdef esp32dev
-  #undef BUILTIN_LED
-  #define BUILTIN_LED 2 //GPIO of BUILTIN_LED for esp32dev
-#endif
+#include "psu_control.h"
 
+//TwoWire Wire1 = TwoWire(1);
 
 void sendData(float data1, float data2);  //Function to send data back to the master
 void sendData(int data1, int data2);  //Overload to accept int as argument
@@ -57,9 +60,9 @@ void sendData(char data1 = 0, char data2 = 0){  //Overload to accept char as arg
 #ifdef DEBUG
 void blink(){
   for (char i = 0; i<10; i++){
-    digitalWrite(BUILTIN_LED, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(50);
-    digitalWrite(BUILTIN_LED, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(50);
   }
 }
@@ -139,14 +142,28 @@ void onReceive(int len){
 void setup() {
   // put your setup code here, to run once:
   #ifdef DEBUG
-  pinMode(BUILTIN_LED, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   #endif
   Serial.begin(115200);
 
   Wire.onReceive(onReceive);  //Function to be called when a master sends data to the slave
   Wire.onRequest(onRequest);  //Function to be called when a master requests data from the slave
   Wire.begin((uint8_t)I2C_ADDR);  //Register this device as a slave on the i2c-bus (on bus 0)
+    
+    Wire1.begin(SDA_2, SCL_2);
+  
+  while (psu_mem_addr == 0xFF){
+    Serial.println("Scanning for EEPROM.");
+    scan_for_device(0x50, 0x57, psu_mem_addr);
+  }
+  read_eeprom();
 
+  while (psu_mcu_addr == 0xFF){
+    Serial.println("Scanning for MCU.");
+    scan_for_device(0x58, 0x5F, psu_mcu_addr);
+  }
+  read_psu_mcu_registers_init();
+  setup_ignore_registers();
 }
 
 void loop() {
